@@ -17,7 +17,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
     setIsAuthenticated(!!getToken())
