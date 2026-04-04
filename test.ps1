@@ -41,7 +41,7 @@ try {
 Write-Host -NoNewline "Test 3: Register new user... "
 try {
     $body = @{email="test@example.com"; username="testuser"; password="testpass123"} | ConvertTo-Json
-    $response = Invoke-WebRequest -Uri "$API_BASE/auth/register" -Method Post -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+    $response = Invoke-WebRequest -Uri "$API_BASE/api/auth/register" -Method Post -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
     if ($response.StatusCode -eq 200) {
         Write-Host "PASS" -ForegroundColor Green
         $PASS++
@@ -62,7 +62,7 @@ Write-Host -NoNewline "Test 4: Login with registered user... "
 $TOKEN = ""
 try {
     $body = @{email="test@example.com"; password="testpass123"} | ConvertTo-Json
-    $response = Invoke-WebRequest -Uri "$API_BASE/auth/login" -Method Post -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+    $response = Invoke-WebRequest -Uri "$API_BASE/api/auth/login" -Method Post -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
     if ($response.StatusCode -eq 200) {
         $loginData = $response.Content | ConvertFrom-Json
         $TOKEN = $loginData.access_token
@@ -79,7 +79,7 @@ Write-Host -NoNewline "Test 5: List bookmarks (empty)... "
 if ($TOKEN) {
     try {
         $headers = @{Authorization = "Bearer $TOKEN"}
-        $response = Invoke-WebRequest -Uri "$API_BASE/bookmarks" -Method Get -Headers $headers -TimeoutSec 10 -UseBasicParsing
+        $response = Invoke-WebRequest -Uri "$API_BASE/api/bookmarks" -Method Get -Headers $headers -TimeoutSec 10 -UseBasicParsing
         if ($response.StatusCode -eq 200) {
             Write-Host "PASS" -ForegroundColor Green
             $PASS++
