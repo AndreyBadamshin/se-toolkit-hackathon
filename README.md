@@ -118,186 +118,34 @@ Open your browser and navigate to:
 
 ## Deployment
 
-### Prerequisites (Ubuntu 24.04 VM)
+For detailed step-by-step deployment instructions, see [**DEPLOYMENT.md**](DEPLOYMENT.md).
 
-The following should be installed on your VM:
-
-```bash
-# Update package list
-sudo apt update
-
-# Install Docker
-sudo apt install -y docker.io
-
-# Start and enable Docker
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# Install Docker Compose (v2)
-sudo apt install -y docker-compose-v2
-
-# Add your user to docker group (optional, to run without sudo)
-sudo usermod -aG docker $USER
-newgrp docker
-
-# Verify installation
-docker --version
-docker compose version
-```
-
-### Qwen Authentication Setup
-
-The qwen-code-api container authenticates with the Qwen LLM service using OAuth credentials. You need to set up the credentials file:
+Quick start:
 
 ```bash
-# Create the Qwen credentials directory
-mkdir -p ~/.qwen
+# 1. Install Docker
+sudo apt update && sudo apt install -y docker.io docker-compose-v2
 
-# Place your OAuth credentials file at ~/.qwen/oauth_creds.json
-# This file is obtained by running `qwen login` locally
-# or by following the Qwen Code OAuth flow.
-#
-# Example format:
-# {
-#   "accessToken": "your-access-token",
-#   "refreshToken": "your-refresh-token",
-#   "expiresAt": 1735689600000
-# }
-```
-
-### Step-by-Step Deployment
-
-#### 1. Clone the Repository
-
-```bash
-# On your VM
+# 2. Clone + init submodule
 git clone https://github.com/YOUR_USERNAME/se-toolkit-hackathon.git
 cd se-toolkit-hackathon
-
-# Initialize the qwen-code-api submodule
 git submodule update --init
-```
 
-#### 2. Configure Environment Variables
+# 3. Set up Qwen credentials
+mkdir -p ~/.qwen
+# Place oauth_creds.json in ~/.qwen/
 
-```bash
-# Copy the example env file
+# 4. Configure
 cp .env.example .env
+nano .env  # Set JWT_SECRET_KEY, CORS_ORIGINS, etc.
 
-# Edit the file
-nano .env
-```
-
-Update these values in `.env`:
-
-```bash
-# Generate a strong JWT secret
-JWT_SECRET_KEY=$(openssl rand -base64 32)
-
-# Qwen Code API settings
-QWEN_CODE_API_MODEL=qwen-plus
-QWEN_CODE_API_AUTH_USE=true
-QWEN_CODE_API_LOG_LEVEL=error
-
-# Update CORS origins for your domain
-CORS_ORIGINS=http://your-domain.com,http://localhost:80
-```
-
-#### 3. Start All Services
-
-```bash
-# Build and start containers
+# 5. Deploy
 docker compose up -d --build
 
-# Check status (should show 4 running containers)
-docker compose ps
-
-# View logs
-docker compose logs -f
-
-# Check qwen-code-api health
-docker compose logs qwen-code-api
+# 6. Open http://YOUR_VM_IP in browser
 ```
 
-#### 4. Verify Deployment
-
-```bash
-# Check backend health endpoint
-curl http://localhost:8000/health
-
-# Check frontend
-curl http://localhost:80
-
-# Run automated tests
-chmod +x test.sh
-./test.sh
-```
-
-#### 5. Access the Application
-
-Open your browser and go to:
-- **http://YOUR_VM_IP** or **http://YOUR_DOMAIN**
-
-The frontend is served on port 80, API on port 8000.
-
-#### 6. (Optional) Set Up HTTPS with Nginx + Let's Encrypt
-
-```bash
-# Install certbot
-sudo apt install -y certbot python3-certbot-nginx
-
-# If using Nginx as reverse proxy:
-sudo apt install -y nginx
-
-# Create Nginx config
-sudo nano /etc/nginx/sites-available/bookmarks
-```
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:80;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-```bash
-# Enable site
-sudo ln -s /etc/nginx/sites-available/bookmarks /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-
-# Get SSL certificate
-sudo certbot --nginx -d your-domain.com
-```
-
-### Stopping the Application
-
-```bash
-# Stop all containers
-docker compose down
-
-# Stop and remove volumes (WARNING: deletes all data)
-docker compose down -v
-```
-
-### Updating the Application
-
-```bash
-# Pull latest changes (including submodule)
-git pull
-git submodule update --init
-
-# Rebuild and restart
-docker compose up -d --build
-```
+See [DEPLOYMENT.md](DEPLOYMENT.md) for troubleshooting, firewall config, and HTTPS setup.
 
 ---
 
