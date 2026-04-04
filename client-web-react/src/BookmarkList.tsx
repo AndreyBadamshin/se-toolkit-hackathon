@@ -2,9 +2,6 @@ import { useState, useEffect, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-// In production (nginx), API is proxied to /auth, /bookmarks, /health
-// In development (Vite dev server), proxy is configured in vite.config.ts
-// So we use empty string (relative URLs) by default
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 interface Bookmark {
@@ -51,7 +48,7 @@ export default function BookmarkList() {
   const fetchBookmarks = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(`${API_URL}/bookmarks`, getAuthHeaders())
+      const response = await axios.get(`${API_URL}/api/bookmarks`, getAuthHeaders())
       setBookmarks(response.data)
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
@@ -71,7 +68,7 @@ export default function BookmarkList() {
     setSaving(true)
 
     try {
-      await axios.post(`${API_URL}/bookmarks`, { url: newUrl }, getAuthHeaders())
+      await axios.post(`${API_URL}/api/bookmarks`, { url: newUrl }, getAuthHeaders())
       setNewUrl('')
       await fetchBookmarks()
     } catch (err: unknown) {
@@ -87,7 +84,7 @@ export default function BookmarkList() {
 
   const handleDeleteBookmark = async (id: number) => {
     try {
-      await axios.delete(`${API_URL}/bookmarks/${id}`, getAuthHeaders())
+      await axios.delete(`${API_URL}/api/bookmarks/${id}`, getAuthHeaders())
       setBookmarks(bookmarks.filter((b) => b.id !== id))
     } catch {
       setError('Failed to delete bookmark')

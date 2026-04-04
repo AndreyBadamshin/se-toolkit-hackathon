@@ -22,13 +22,13 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
     setLoading(true)
 
     try {
-      await axios.post(`${API_URL}/auth/register`, {
+      await axios.post(`${API_URL}/api/auth/register`, {
         email,
         username,
         password,
       })
       // Auto-login after registration
-      const loginResponse = await axios.post(`${API_URL}/auth/login`, {
+      const loginResponse = await axios.post(`${API_URL}/api/auth/login`, {
         email,
         password,
       })

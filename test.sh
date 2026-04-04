@@ -36,7 +36,7 @@ fi
 
 # Test 3: Register user
 echo -n "Test 3: Register new user... "
-REGISTER_RESPONSE=$(curl -sf -X POST "$API_BASE/auth/register" \
+REGISTER_RESPONSE=$(curl -sf -X POST "$API_BASE/api/auth/register" \
     -H "Content-Type: application/json" \
     -d '{"email":"test@example.com","username":"testuser","password":"testpass123"}' \
     -o /tmp/register_response.json 2>&1) || true
@@ -51,7 +51,7 @@ fi
 
 # Test 4: Login
 echo -n "Test 4: Login with registered user... "
-LOGIN_RESPONSE=$(curl -sf -X POST "$API_BASE/auth/login" \
+LOGIN_RESPONSE=$(curl -sf -X POST "$API_BASE/api/auth/login" \
     -H "Content-Type: application/json" \
     -d '{"email":"test@example.com","password":"testpass123"}' \
     -o /tmp/login_response.json 2>&1) || true
@@ -69,7 +69,7 @@ fi
 # Test 5: List bookmarks (empty)
 echo -n "Test 5: List bookmarks (empty)... "
 if [ -n "$TOKEN" ]; then
-    BOOKMARKS_RESPONSE=$(curl -sf "$API_BASE/bookmarks" \
+    BOOKMARKS_RESPONSE=$(curl -sf "$API_BASE/api/bookmarks" \
         -H "Authorization: Bearer $TOKEN" \
         -o /tmp/bookmarks_response.json 2>&1) || true
     if [ -f /tmp/bookmarks_response.json ]; then

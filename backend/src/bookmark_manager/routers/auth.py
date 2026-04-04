@@ -54,5 +54,5 @@ async def login(credentials: UserLogin, session: AsyncSession = Depends(get_sess
             detail="Incorrect email or password",
         )
 
-    access_token = create_access_token(data={"sub": user.id})
+    access_token = create_access_token(data={"sub": str(user.id)})
     return Token(access_token=access_token)
