@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './Login'
 import Register from './Register'
@@ -17,10 +17,9 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function App() {
-  const [, setIsAuthenticated] = useState(false)
-
   useEffect(() => {
-    setIsAuthenticated(!!getToken())
+    // Validate token on mount (trigger re-render if invalid)
+    getToken()
   }, [])
 
   return (
@@ -28,11 +27,11 @@ export default function App() {
       <Routes>
         <Route
           path="/login"
-          element={<Login onAuthSuccess={() => setIsAuthenticated(true)} />}
+          element={<Login onAuthSuccess={() => {}} />}
         />
         <Route
           path="/register"
-          element={<Register onAuthSuccess={() => setIsAuthenticated(true)} />}
+          element={<Register onAuthSuccess={() => {}} />}
         />
         <Route
           path="/bookmarks"

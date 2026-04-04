@@ -11,15 +11,22 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, session: AsyncSession = Depends(get_session)):
+    # Validate password length
+    if len(user_data.password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 6 characters",
+        )
+
     # Check if user exists
     statement = select(User).where(User.email == user_data.email)
-    result = await session.exec(statement)
-    if result.first():
+    result = await session.execute(statement)
+    if result.scalars().first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
     statement = select(User).where(User.username == user_data.username)
-    result = await session.exec(statement)
-    if result.first():
+    result = await session.execute(statement)
+    if result.scalars().first():
         raise HTTPException(status_code=400, detail="Username already taken")
 
     # Create user
@@ -38,8 +45,8 @@ async def register(user_data: UserCreate, session: AsyncSession = Depends(get_se
 @router.post("/login", response_model=Token)
 async def login(credentials: UserLogin, session: AsyncSession = Depends(get_session)):
     statement = select(User).where(User.email == credentials.email)
-    result = await session.exec(statement)
-    user = result.first()
+    result = await session.execute(statement)
+    user = result.scalars().first()
 
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(

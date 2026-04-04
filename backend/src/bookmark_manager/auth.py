@@ -4,7 +4,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-from sqlmodel import Session, select
+from sqlmodel import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bookmark_manager.settings import settings
 from bookmark_manager.database import get_session
@@ -33,7 +34,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> User:
     try:
         payload = jwt.decode(
@@ -54,8 +55,8 @@ async def get_current_user(
         ) from e
 
     statement = select(User).where(User.id == user_id)
-    result = await session.exec(statement)
-    user = result.first()
+    result = await session.execute(statement)
+    user = result.scalars().first()
 
     if user is None:
         raise HTTPException(

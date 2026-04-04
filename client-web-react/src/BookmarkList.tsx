@@ -2,6 +2,9 @@ import { useState, useEffect, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
+// In production (nginx), API is proxied to /auth, /bookmarks, /health
+// In development (Vite dev server), proxy is configured in vite.config.ts
+// So we use empty string (relative URLs) by default
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 interface Bookmark {
@@ -50,10 +53,11 @@ export default function BookmarkList() {
     try {
       const response = await axios.get(`${API_URL}/bookmarks`, getAuthHeaders())
       setBookmarks(response.data)
-    } catch (err: any) {
-      if (err.response?.status === 401) {
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
         localStorage.removeItem('token')
         navigate('/login')
+        return
       }
       setError('Failed to load bookmarks')
     } finally {
@@ -70,8 +74,12 @@ export default function BookmarkList() {
       await axios.post(`${API_URL}/bookmarks`, { url: newUrl }, getAuthHeaders())
       setNewUrl('')
       await fetchBookmarks()
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to save bookmark')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Failed to save bookmark')
+      } else {
+        setError('Failed to save bookmark')
+      }
     } finally {
       setSaving(false)
     }
@@ -81,7 +89,7 @@ export default function BookmarkList() {
     try {
       await axios.delete(`${API_URL}/bookmarks/${id}`, getAuthHeaders())
       setBookmarks(bookmarks.filter((b) => b.id !== id))
-    } catch (err: any) {
+    } catch {
       setError('Failed to delete bookmark')
     }
   }
@@ -106,7 +114,12 @@ export default function BookmarkList() {
       </nav>
 
       <div className="container">
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+            {error}
+            <button type="button" className="btn-close" onClick={() => setError('')}></button>
+          </div>
+        )}
 
         <div className="card shadow mb-4">
           <div className="card-body">

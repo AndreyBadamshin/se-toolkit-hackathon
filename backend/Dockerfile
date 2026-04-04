@@ -19,8 +19,12 @@ COPY --from=builder /install /usr/local
 # Copy application code
 COPY src/ ./src/
 
-# Create non-root user
-RUN useradd --create-home --uid 999 appuser
+# Add src/ to Python path so bookmark_manager is importable
+ENV PYTHONPATH=/app/src
+
+# Create non-root user (use UID within typical Linux range)
+RUN groupadd --system --gid 1000 appuser && \
+    useradd --system --gid 1000 --uid 1000 --create-home appuser
 USER appuser
 
 EXPOSE 8000
