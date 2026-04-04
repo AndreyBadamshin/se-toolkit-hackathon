@@ -1,0 +1,29 @@
+# Core
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+python-dotenv==1.0.1
+
+# Database
+sqlalchemy==2.0.36
+sqlmodel==0.0.22
+asyncpg==0.30.0
+alembic==1.14.0
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.20
+
+# HTTP & LLM
+httpx==0.28.1
+openai==1.59.3
+
+# Observability
+opentelemetry-distro==0.50b0
+opentelemetry-instrumentation-fastapi==0.50b0
+opentelemetry-instrumentation-sqlalchemy==0.50b0
+opentelemetry-instrumentation-httpx==0.50b0
+opentelemetry-instrumentation-asyncpg==0.50b0
+opentelemetry-exporter-otlp==1.29.0
