@@ -28,8 +28,12 @@ export default function Login({ onAuthSuccess }: LoginProps) {
       localStorage.setItem('token', response.data.access_token)
       onAuthSuccess()
       navigate('/bookmarks')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Login failed')
+      } else {
+        setError('Login failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -65,6 +69,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <button

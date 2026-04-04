@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 import httpx
 from openai import AsyncOpenAI
@@ -22,15 +23,20 @@ async def fetch_page_metadata(url: str) -> dict:
             response.raise_for_status()
             content = response.text
 
-            # Extract basic meta tags
-            metadata = {"url": url, "content": ""}
+            metadata: dict = {"url": url, "content": ""}
 
-            # Try to extract og:title and og:description
-            import re
-
-            title_match = re.search(r'<meta[^>]*property=["\']og:title["\'][^>]*content=["\']([^"\']*)["\']', content)
-            desc_match = re.search(r'<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"\']*)["\']', content)
-            image_match = re.search(r'<meta[^>]*property=["\']og:image["\'][^>]*content=["\']([^"\']*)["\']', content)
+            title_match = re.search(
+                r'<meta[^>]*property=["\']og:title["\'][^>]*content=["\']([^"\']*)["\']',
+                content,
+            )
+            desc_match = re.search(
+                r'<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"\']*)["\']',
+                content,
+            )
+            image_match = re.search(
+                r'<meta[^>]*property=["\']og:image["\'][^>]*content=["\']([^"\']*)["\']',
+                content,
+            )
 
             if title_match:
                 metadata["og_title"] = title_match.group(1)
@@ -40,7 +46,9 @@ async def fetch_page_metadata(url: str) -> dict:
                 metadata["og_image"] = image_match.group(1)
 
             # Extract title tag
-            title_tag = re.search(r'<title[^>]*>(.*?)</title>', content, re.IGNORECASE | re.DOTALL)
+            title_tag = re.search(
+                r'<title[^>]*>(.*?)</title>', content, re.IGNORECASE | re.DOTALL
+            )
             if title_tag:
                 metadata["title"] = title_tag.group(1).strip()
 

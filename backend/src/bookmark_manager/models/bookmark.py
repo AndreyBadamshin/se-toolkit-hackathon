@@ -1,13 +1,15 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
+from sqlalchemy import Column
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class BookmarkBase(SQLModel):
     url: str
     title: str
     summary: str
-    tags: list[str] = Field(default_factory=list, sa_column=None)
+    tags: list[str] = Field(default_factory=list, sa_column=Column(JSONB))
     category: str = "other"
     image_url: Optional[str] = None
 

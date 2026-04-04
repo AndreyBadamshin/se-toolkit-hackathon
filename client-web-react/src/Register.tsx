@@ -35,8 +35,12 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
       localStorage.setItem('token', loginResponse.data.access_token)
       onAuthSuccess()
       navigate('/bookmarks')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || 'Registration failed')
+      } else {
+        setError('Registration failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -83,6 +87,7 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <button
