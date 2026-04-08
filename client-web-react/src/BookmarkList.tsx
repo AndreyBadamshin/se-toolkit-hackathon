@@ -54,6 +54,7 @@ export default function BookmarkList() {
   const [newCollectionName, setNewCollectionName] = useState('')
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [importFile, setImportFile] = useState<File | null>(null)
+  const [bookmarkCollections, setBookmarkCollections] = useState<Record<number, number[]>>({})
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -110,7 +111,7 @@ export default function BookmarkList() {
 
   const handleCreateCollection = async () => {
     if (!newCollectionName.trim()) return
-    
+
     try {
       await axios.post(
         `${API_URL}/api/collections`,
@@ -124,6 +125,23 @@ export default function BookmarkList() {
     }
   }
 
+  const handleDeleteCollection = async (collectionId: number) => {
+    try {
+      await axios.delete(`${API_URL}/api/collections/${collectionId}`, getAuthHeaders())
+      setCollections(collections.filter(c => c.id !== collectionId))
+      // Remove this collection from all bookmark collections
+      setBookmarkCollections(prev => {
+        const updated = { ...prev }
+        Object.keys(updated).forEach(bookmarkId => {
+          updated[parseInt(bookmarkId)] = updated[parseInt(bookmarkId)].filter(id => id !== collectionId)
+        })
+        return updated
+      })
+    } catch {
+      setError('Failed to delete collection')
+    }
+  }
+
   const handleAddToCollection = async (bookmarkId: number, collectionId: number) => {
     try {
       await axios.post(
@@ -131,6 +149,11 @@ export default function BookmarkList() {
         {},
         getAuthHeaders()
       )
+      // Update local state to track this bookmark in the collection
+      setBookmarkCollections(prev => ({
+        ...prev,
+        [bookmarkId]: [...(prev[bookmarkId] || []), collectionId]
+      }))
     } catch {
       setError('Failed to add bookmark to collection')
     }
@@ -244,9 +267,9 @@ export default function BookmarkList() {
   const filteredBookmarks = filterCategory
     ? bookmarks.filter((b) => (b.categories || []).includes(filterCategory))
     : bookmarks
-  
+
   const displayBookmarks = filterCollection
-    ? filteredBookmarks // Will be filtered by collection when we fetch collection bookmarks
+    ? filteredBookmarks.filter((b) => bookmarkCollections[b.id]?.includes(filterCollection))
     : filteredBookmarks
 
   return (
@@ -391,14 +414,23 @@ export default function BookmarkList() {
               <h6 className="mb-3">Collections</h6>
               <div className="d-flex gap-2 mb-3 flex-wrap">
                 {collections.map((col) => (
-                  <button
-                    key={col.id}
-                    className="btn btn-sm btn-outline-primary"
-                    style={{ borderColor: col.color, color: col.color }}
-                    onClick={() => setFilterCollection(filterCollection === col.id ? null : col.id)}
-                  >
-                    {col.name}
-                  </button>
+                  <div key={col.id} className="d-flex align-items-center gap-1">
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      style={{ borderColor: col.color, color: col.color }}
+                      onClick={() => setFilterCollection(filterCollection === col.id ? null : col.id)}
+                    >
+                      {col.name}
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                      onClick={() => handleDeleteCollection(col.id)}
+                      title="Delete collection"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
               </div>
               <div className="input-group">
@@ -424,14 +456,14 @@ export default function BookmarkList() {
               <span className="visually-hidden">Loading...</span>
             </div>
           </div>
-        ) : filteredBookmarks.length === 0 ? (
+        ) : displayBookmarks.length === 0 ? (
           <div className="text-center py-5 text-muted">
             <h4>No bookmarks yet</h4>
             <p>Add your first bookmark above!</p>
           </div>
         ) : (
           <div className="row g-4">
-            {filteredBookmarks.map((bookmark) => (
+            {displayBookmarks.map((bookmark) => (
               <div key={bookmark.id} className="col-md-6 col-lg-4">
                 <div className="card bookmark-card h-100">
                   {bookmark.image_url && (
@@ -540,9 +572,18 @@ export default function BookmarkList() {
                           defaultValue=""
                         >
                           <option value="" disabled>Add to collection...</option>
-                          {collections.map((col) => (
-                            <option key={col.id} value={col.id}>{col.name}</option>
-                          ))}
+                          {collections.map((col) => {
+                            const isInCollection = bookmarkCollections[bookmark.id]?.includes(col.id)
+                            return (
+                              <option 
+                                key={col.id} 
+                                value={col.id}
+                                disabled={isInCollection}
+                              >
+                                {col.name}{isInCollection ? ' (already added)' : ''}
+                              </option>
+                            )
+                          })}
                         </select>
                       </div>
                     )}
