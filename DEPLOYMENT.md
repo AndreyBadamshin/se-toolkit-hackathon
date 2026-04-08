@@ -136,7 +136,7 @@ JWT_SECRET_KEY=YOUR_GENERATED_SECRET_STRING_HERE
 # ─────────────────────────────────────────
 # Qwen Code API — model to use
 # ─────────────────────────────────────────
-QWEN_CODE_API_MODEL=qwen-plus
+QWEN_CODE_API_MODEL=coder-model
 QWEN_CODE_API_AUTH_USE=true
 QWEN_CODE_API_LOG_LEVEL=error
 
@@ -261,9 +261,10 @@ http://YOUR_VM_IP:FRONTEND_PORT
 1. **Register** — click "Register", enter email, username, password
 2. **Add a bookmark** — paste any URL (e.g., `https://docs.python.org/3/`) and click "Save Bookmark"
 3. **Wait 5-15 seconds** — the backend fetches the page and sends it to Qwen LLM for analysis
-4. **See the result** — a card appears with auto-generated title, summary, tags, and category
+4. **See the result** — a card appears with auto-generated title, summary, and categories
 5. **Add more bookmarks** — try URLs from different categories to see varied results
 6. **Filter by category** — use the filter buttons to narrow down
+7. **Edit categories** — click "×" on a category to remove it, or "+" to add a new one (max 5)
 
 ---
 

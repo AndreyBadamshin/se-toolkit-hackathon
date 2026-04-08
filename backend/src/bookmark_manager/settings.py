@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # LLM (qwen-code-api OpenAI-compatible endpoint)
     llm_api_base_url: str = "http://qwen-code-api:8080/v1"
     llm_api_key: str = ""
-    llm_model: str = "qwen-plus"
+    llm_model: str = "coder-model"
 
     # CORS
     cors_origins: str = "http://localhost:3000,http://localhost:5173"

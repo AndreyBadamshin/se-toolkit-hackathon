@@ -1,6 +1,6 @@
 # Smart Bookmark Manager
 
-AI-powered bookmark manager that automatically analyzes saved pages using Qwen LLM, generates tags, summaries, and categories — making search and navigation instant.
+AI-powered bookmark manager that automatically analyzes saved pages using Qwen LLM, generates summaries and categories — making search and navigation instant.
 
 **Demo:** [See it in action](#) (link after deployment)
 
@@ -24,19 +24,20 @@ A smart bookmark manager that automatically analyzes saved page content using AI
 ### Implemented (Version 1)
 - ✅ User registration and authentication (JWT)
 - ✅ Save bookmarks by URL with automatic AI analysis via Qwen LLM
-- ✅ Auto-generated title, summary, tags, and category
+- ✅ Auto-generated title, summary, and categories (up to 5)
 - ✅ Page thumbnail extraction (og:image)
 - ✅ Filter bookmarks by category
+- ✅ Edit categories inline (add/remove with max 5 per bookmark)
 - ✅ Delete bookmarks
 - ✅ Responsive web UI with Bootstrap 5
 - ✅ Docker-compose deployment with qwen-code-api container
 
-### Planned (Version 2)
-- ⏳ Natural language search (pgvector + embeddings)
-- ⏳ Collections / folders
-- ⏳ Manual tag editing
-- ⏳ Import/Export (CSV/JSON)
-- ⏳ Full-text search
+### Implemented (Version 2)
+- ✅ Natural language search with embeddings (pgvector)
+- ✅ Collections/folders for organizing bookmarks
+- ✅ Export bookmarks to JSON/CSV
+- ✅ Import bookmarks from CSV
+- ✅ Embedding generation for semantic search
 
 ---
 
@@ -105,12 +106,17 @@ Open your browser and navigate to:
 - The AI (Qwen LLM) will analyze the page and generate:
   - Title
   - 2-3 sentence summary
-  - 5 relevant tags
-  - Category (tech, science, education, entertainment, news, etc.)
+  - Up to 5 relevant categories
   - Thumbnail (if available)
 
 ### 5. Manage Bookmarks
 - Filter by category using the filter buttons
+- Edit categories inline: click "×" to remove a category, or "+" to add a new one (max 5 per bookmark)
+- Search bookmarks using natural language in the search bar
+- Organize bookmarks into collections (click "📁 Collections" to create and manage)
+- Add bookmarks to collections using the dropdown in each bookmark card
+- Export bookmarks to JSON or CSV (click "📥 Export/Import")
+- Import bookmarks from CSV file
 - Click bookmark title to open the original page
 - Delete bookmarks with the × button
 
@@ -157,7 +163,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for troubleshooting, firewall config, and HTT
 | Database | PostgreSQL 16 with JSONB support |
 | Frontend | React 18, TypeScript, Vite, Bootstrap 5 |
 | LLM Proxy | qwen-code-api (OpenAI-compatible proxy for Qwen) |
-| LLM | Qwen (qwen-plus model) |
+| LLM | Qwen (coder-model) |
 | Auth | JWT (python-jose + bcrypt) |
 | DevOps | Docker, Docker Compose |
 
@@ -176,12 +182,18 @@ se-toolkit-hackathon/
 │   │   ├── llm_service.py       # LLM integration (via qwen-code-api)
 │   │   ├── models/              # SQLModel definitions
 │   │   │   ├── user.py
-│   │   │   └── bookmark.py
+│   │   │   ├── bookmark.py
+│   │   │   ├── collection.py
+│   │   │   └── bookmark_collection.py
 │   │   ├── db/                  # Database operations
-│   │   │   └── bookmarks.py
+│   │   │   ├── bookmarks.py
+│   │   │   └── collections.py
 │   │   └── routers/             # API routes
 │   │       ├── auth.py
-│   │       └── bookmarks.py
+│   │       ├── bookmarks.py
+│   │       ├── collections.py
+│   │       ├── search.py
+│   │       └── import_export.py
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── client-web-react/            # React frontend
@@ -229,6 +241,36 @@ se-toolkit-hackathon/
 | GET | `/bookmarks/{id}` | Get single bookmark | Yes (JWT) |
 | PUT | `/bookmarks/{id}` | Update bookmark | Yes (JWT) |
 | DELETE | `/bookmarks/{id}` | Delete bookmark | Yes (JWT) |
+| PUT | `/bookmarks/{id}/categories` | Update all categories (max 5) | Yes (JWT) |
+| POST | `/bookmarks/{id}/categories` | Add a single category | Yes (JWT) |
+| DELETE | `/bookmarks/{id}/categories/{category}` | Remove a category | Yes (JWT) |
+
+### Collections
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/collections` | Create collection | Yes (JWT) |
+| GET | `/collections` | List user's collections | Yes (JWT) |
+| GET | `/collections/{id}` | Get single collection | Yes (JWT) |
+| PUT | `/collections/{id}` | Update collection | Yes (JWT) |
+| DELETE | `/collections/{id}` | Delete collection | Yes (JWT) |
+| POST | `/collections/{id}/bookmarks/{bookmark_id}` | Add bookmark to collection | Yes (JWT) |
+| DELETE | `/collections/{id}/bookmarks/{bookmark_id}` | Remove bookmark from collection | Yes (JWT) |
+| GET | `/collections/{id}/bookmarks` | Get all bookmarks in collection | Yes (JWT) |
+
+### Search
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/search?q=query` | Natural language search | Yes (JWT) |
+
+### Import/Export
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/import-export/export/json` | Export bookmarks to JSON | Yes (JWT) |
+| GET | `/import-export/export/csv` | Export bookmarks to CSV | Yes (JWT) |
+| POST | `/import-export/import/csv` | Import bookmarks from CSV | Yes (JWT) |
 
 ### Health
 
@@ -253,7 +295,7 @@ This means the backend can use the standard `openai` Python client library, simp
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `QWEN_CODE_API_MODEL` | Model name to use | `qwen-plus` |
+| `QWEN_CODE_API_MODEL` | Model name to use | `coder-model` |
 | `QWEN_CODE_API_AUTH_USE` | Use ~/.qwen/oauth_creds.json | `true` |
 | `QWEN_CODE_API_LOG_LEVEL` | Logging: off, error, debug | `error` |
 | `QWEN_CODE_API_MAX_RETRIES` | Retry on 500 errors | `5` |
