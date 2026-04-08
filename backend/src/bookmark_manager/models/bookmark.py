@@ -3,15 +3,16 @@ from typing import Optional
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
+from pgvector.sqlalchemy import Vector
 
 
 class BookmarkBase(SQLModel):
     url: str
     title: str
     summary: str
-    tags: list[str] = Field(default_factory=list, sa_column=Column(JSONB))
-    category: str = "other"
+    categories: list[str] = Field(default_factory=list, sa_column=Column(JSONB))
     image_url: Optional[str] = None
+    embedding: Optional[list[float]] = Field(default=None, sa_column=Column(Vector(1536)))
 
 
 class Bookmark(BookmarkBase, table=True):
@@ -37,5 +38,4 @@ class BookmarkResponse(BookmarkBase):
 class BookmarkUpdate(SQLModel):
     title: Optional[str] = None
     summary: Optional[str] = None
-    tags: Optional[list[str]] = None
-    category: Optional[str] = None
+    categories: Optional[list[str]] = None

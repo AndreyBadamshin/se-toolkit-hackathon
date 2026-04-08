@@ -25,19 +25,19 @@ AI-powered automatic classification and tagging of saved links.
 | Component | What will be implemented |
 |-----------|--------------------------|
 | **Backend** | FastAPI REST API with endpoints: registration/authentication (JWT), bookmark CRUD, LLM requests for URL analysis |
-| **Database** | PostgreSQL with tables: `users`, `bookmarks` (url, title, summary, tags[], category, created_at), user ↔ bookmarks relation |
-| **Client** | React SPA: URL input form, bookmark list with tags/categories, filter by tags, delete |
-| **LLM** | OpenAI API integration (or Ollama for local deployment): prompt for page content analysis → generate title, summary, 5 tags, category |
+| **Database** | PostgreSQL with tables: `users`, `bookmarks` (url, title, summary, categories[], created_at), user ↔ bookmarks relation |
+| **Client** | React SPA: URL input form, bookmark list with categories, filter by categories, delete |
+| **LLM** | OpenAI API integration (or Ollama for local deployment): prompt for page content analysis → generate title, summary, 5 categories |
 
 ### User Flow (V1)
 1. User registers / logs in
 2. Pastes a URL into the form → clicks "Save"
 3. Backend:
    - Fetches page metadata (title, description, open graph)
-   - Sends data to LLM with prompt: `"Analyze this web content. Return JSON: {title, summary (2-3 sentences), tags (5 keywords), category (one of: tech, science, education, entertainment, news, other)}"`
+   - Sends data to LLM with prompt: `"Analyze this web content. Return JSON: {title, summary (2-3 sentences), categories (1-5 specific categories)}"`
    - Saves result to PostgreSQL
-4. Client displays a bookmark card with auto-generated summary, tags, and category
-5. User can filter bookmarks by tags and categories
+4. Client displays a bookmark card with auto-generated summary and categories
+5. User can filter bookmarks by categories and edit categories inline
 
 ### Tech Stack
 | Component | Technology |
@@ -60,7 +60,7 @@ AI-powered automatic classification and tagging of saved links.
 
 ### Success Criteria (V1)
 - User can register, add a URL, and see an auto-classified bookmark
-- Tags and categories are generated correctly in ≥80% of cases
+- Categories are generated correctly in ≥80% of cases
 - All services start with a single `docker-compose up` command
 
 ---
@@ -73,10 +73,10 @@ AI-powered automatic classification and tagging of saved links.
 
 | Feedback | Solution |
 |----------|----------|
-| "I want to search by meaning, not just by tags" | Natural language search via LLM embeddings |
+| "I want to search by meaning, not just by categories" | Natural language search via LLM embeddings |
 | "No import/export" | Add bulk import (CSV) and export |
 | "No page previews" | Save og:image and show thumbnails |
-| "Tags are sometimes irrelevant" | Few-shot prompt engineering + ability to manually edit tags |
+| "Categories are sometimes irrelevant" | Few-shot prompt engineering + ability to manually edit categories |
 | "I want folders/collections" | Add bookmark collections (groups) |
 
 ### New Features (V2)
@@ -97,9 +97,10 @@ AI-powered automatic classification and tagging of saved links.
 - Save image URL in bookmark
 - Show thumbnail in bookmark card
 
-#### 4. Edit Tags & Summary
-- User can manually edit tags and summary if LLM made a mistake
-- PUT endpoint for updating fields
+#### 4. Edit Categories
+- User can manually edit categories if LLM made a mistake
+- PUT endpoint for updating categories
+- UI: inline editing with add/remove buttons
 
 #### 5. Export / Import
 - Export bookmarks to JSON/CSV
@@ -134,7 +135,7 @@ AI-powered automatic classification and tagging of saved links.
                     │  │  users  │ │  bookmarks   │ │
                     │  │         │ │ (title,      │ │
                     │  │         │ │  summary,    │ │
-                    │  │         │ │  tags,       │ │
+                    │  │         │ │  categories, │ │
                     │  │         │ │  embedding)  │ │
                     │  └─────────┘ └──────────────┘ │
                     │  ┌─────────┐ ┌──────────────┐ │
@@ -156,8 +157,8 @@ AI-powered automatic classification and tagging of saved links.
 
 | Scenario | Model | Prompt / Task |
 |----------|-------|---------------|
-| Bookmark classification | gpt-4o-mini | `"Analyze this web content. Return JSON: {title, summary (2-3 sentences), tags (5 keywords), category}"` |
-| Natural Language Search | text-embedding-3-small | Vectorize summary + tags on save; query embedding → cosine similarity → top-10 results |
+| Bookmark classification | gpt-4o-mini | `"Analyze this web content. Return JSON: {title, summary (2-3 sentences), categories (1-5 specific categories)}"` |
+| Natural Language Search | text-embedding-3-small | Vectorize summary + categories on save; query embedding → cosine similarity → top-10 results |
 | Search refinement | gpt-4o-mini (optional) | `"Given these bookmarks [list], which best match the query: [user_query]?"` — reranking top-5 |
 
 ### Deployment Plan
@@ -176,11 +177,11 @@ AI-powered automatic classification and tagging of saved links.
 5. Frontend accessible at `bookmarks.yourdomain.com`, API at `api.bookmarks.yourdomain.com`
 
 ### Deliverables (V2)
-- [ ] Natural language search with pgvector
-- [ ] Collections / folders
-- [ ] Page thumbnails (og:image)
-- [ ] Edit tags/summary manually
-- [ ] Export/Import (CSV/JSON)
+- [x] Natural language search with pgvector
+- [x] Collections / folders
+- [x] Page thumbnails (og:image)
+- [x] Edit categories manually (already implemented in V1)
+- [x] Export/Import (CSV/JSON)
 - [ ] TA feedback addressed
 - [ ] Docker-compose for production
 - [ ] Deploy to VM / cloud
